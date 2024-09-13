@@ -3,10 +3,6 @@ import {
   CCInteger,
   Component,
   director,
-  EventKeyboard,
-  Input,
-  input,
-  KeyCode,
   Node,
   Contact2DType,
   Collider2D,
@@ -68,14 +64,21 @@ export class GameCtrl extends Component {
 
   private isOver: boolean = false;
 
+  protected onEnable(): void {
+    this._pipePool.onPipePass.on("pipe-passed", this.increaceScore, this);
+  }
+
+  protected onDisable(): void {
+    this._pipePool.onPipePass.off("pipe-passed", this.increaceScore, this);
+  }
+
   protected onLoad(): void {
-    this.initListener();
+    this.node.on(Node.EventType.TOUCH_START, this.onClick, this);
 
     this._results.resetScore();
-    this._pipePool.initPool();
-
-    this.isOver = true;
+    this.isOver = false;
     director.pause();
+    director.resume();
   }
 
   protected update(dt: number): void {
@@ -88,8 +91,8 @@ export class GameCtrl extends Component {
     }
   }
 
-  private initListener(): void {
-    this.node.on(Node.EventType.TOUCH_START, this.onClick, this);
+  protected onDestroy(): void {
+    this.node.off(Node.EventType.TOUCH_START, this.onClick, this);
   }
 
   private startGame(): void {
@@ -130,7 +133,7 @@ export class GameCtrl extends Component {
     }
   }
 
-  private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null): void {
+  private onBeginContact(_selfCollider: Collider2D, _otherCollider: Collider2D, _contact: IPhysics2DContact | null): void {
     this._bird.hitSomesing = true;
     this._birdAudio.playAudio(2);
   }
@@ -146,9 +149,5 @@ export class GameCtrl extends Component {
   public increaceScore(): void {
     this._results.increaseScore();
     this._birdAudio.playAudio(1);
-  }
-
-  public createPipe(): void {
-    this._pipePool.addPool();
   }
 }

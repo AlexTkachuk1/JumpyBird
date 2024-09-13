@@ -1,52 +1,45 @@
-import { _decorator, CCFloat, Component, Vec3, Animation, tween, Node, easing } from 'cc';
-const { ccclass, property } = _decorator;
+import { _decorator, Component, Vec3, lerp, Animation } from 'cc';
+const { ccclass, requireComponent } = _decorator;
 
 @ccclass('Bird')
+@requireComponent(Animation)
 export class Bird extends Component {
-    @property({
-        type: CCFloat,
-        tooltip: "How highe bird can be",
-        visible: true,
-    })
-    private jumpHeight: number = 170;
-    
-    @property({
-        type: CCFloat,
-        tooltip: "How long bird can fly",
-        visible: true,
-    })
-    private jumpDuration: number = 0.3;
-
-    private birdAnimation: Animation;
-    private birdPosition: Vec3;
+    private jumpStrength: number = 35;
+    private gravity: number = 2;
+    private birdVelocityY: number = 0;
+    private fallAcceleration: number = 15;
+    private jumpAcceleration: number = 25;
+    private animation: Animation;
 
     public hitSomesing: boolean = false;
     
     protected onLoad(): void {
-        this.resetBird();
+        this.animation = this.getComponent(Animation);
+    }
 
-        this.birdAnimation = this.getComponent(Animation);
+    protected update(dt: number): void {
+        let y: number;
+        if (this.birdVelocityY > 0) {
+            y = lerp(0, this.birdVelocityY, this.jumpAcceleration * dt); 
+        } else {
+            y = lerp(0, this.birdVelocityY, this.fallAcceleration * dt);        
+        }
+        
+        this.node.angle = y * 2;
+
+        this.node.position = new Vec3(this.node.position.x, this.node.position.y + y, this.node.position.z);
+        this.birdVelocityY -= this.gravity;
     }
 
     public resetBird(): void {
-        this.birdPosition = new Vec3(0, 0, 0);
-
-        this.node.setPosition(this.birdPosition);
-
+        this.node.setPosition(new Vec3(0, 0, 0));
+        this.birdVelocityY = 0;
         this.hitSomesing = false;
     }
 
     public fly(): void {
-        this.birdAnimation.stop();
-
-        const newPos = new Vec3(this.node.position.x, this.node.position.y + this.jumpHeight, 0);
-
-        tween(this.node.position)
-            .to(this.jumpDuration, newPos, {easing: "smooth", onUpdate: (target: Vec3, ratio: number) => {
-                this.node.position = target;
-            }
-        }).start();
-
-        this.birdAnimation.play();
+        this.birdVelocityY = this.jumpStrength;
+        this.animation.stop();
+        this.animation.play();
     }
 }

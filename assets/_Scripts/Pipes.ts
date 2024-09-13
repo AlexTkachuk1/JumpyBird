@@ -1,8 +1,8 @@
-import { _decorator, Component, Node, Vec3, screen, find, UITransform } from 'cc';
+import { _decorator, Component, Node, Vec3, find, EventTarget} from 'cc';
 import { GameCtrl } from './GameCtrl';
 const { ccclass, property } = _decorator;
 
-const random = (min: number, max: number): number => {
+const randomRang = (min: number, max: number): number => {
     return Math.random() * (max - min) + min;
 };
 
@@ -22,70 +22,48 @@ export class Pipes extends Component {
     })
     private _bottomPipe: Node;
 
-    private _tempStartPositionUp: Vec3 = new Vec3(0, 0, 0);
-    private _tempStartPositionDown: Vec3 = new Vec3(0, 0, 0);
-    private _scene = screen.windowSize
-    private _game: GameCtrl;
     private _pipeSpeed: number = 200;
-    private _tempSpeed: number;
-    private isPass: boolean = false;
+    private _isPass: boolean = false;
+    private _xDeviationRange: number = 100;
+    private _gapDeviationRange: number = 120;
+    private _minGap: number = 220;
+    private _minY: number = -100;
+    private _maxY: number = 400;
 
-    protected onLoad(): void {
-        this._game = find('GameCtrl').getComponent(GameCtrl);
-        this._pipeSpeed = this._game.pipeSpeed;
+    public onPipePass: EventTarget = new EventTarget();
 
-        this.initPositions();
+    get currentPosX(): number {
+        return this._topPipe.position.x;
     }
 
     protected update(dt: number): void {
-        this._tempSpeed = this._pipeSpeed * dt;
+        this._topPipe.position = new Vec3(this._topPipe.position.x - this._pipeSpeed * dt, this._topPipe.position.y, this._topPipe.position.z);
+        this._bottomPipe.position = new Vec3(this._bottomPipe.position.x - this._pipeSpeed * dt, this._bottomPipe.position.y, this._bottomPipe.position.z);
 
-        this._tempStartPositionUp = this._topPipe.position;
-        this._tempStartPositionDown = this._bottomPipe.position;
-
-        this._tempStartPositionUp.x -= this._tempSpeed;
-        this._tempStartPositionDown.x -= this._tempSpeed;
-
-        this._topPipe.setPosition(this._tempStartPositionUp);
-        this._bottomPipe.setPosition(this._tempStartPositionDown);
-
-        if(!this.isPass && this._topPipe.position.x <= 0) { 
-            this.isPass = true;
-            this._game.increaceScore();
-        }
-
-        if (this._topPipe.position.x <= -this._scene.width / 2 - 200) {
-            this._game.createPipe();
-            this.updetePipe();
+        if(!this._isPass && this._topPipe.position.x <= -52) { 
+            this._isPass = true;
+            this.onPipePass.emit("custom-event");
         }
     }
 
-    private updetePipe(): void {
-        this.updetePipeX();
-        this.updetePipeY();
-        this.isPass = false;
+    public reset(initPos: number): void {
+        this.resetPipeX(initPos);
+        this.resetPipeY();
+        this._isPass = false;
     }
 
-    private updetePipeX(): void {
-        this._tempStartPositionUp.x += this._scene.width + 200;
-        this._tempStartPositionDown.x += this._scene.width + 200;
+    private resetPipeX(initPos: number): void {
+        const x = initPos + randomRang(-this._xDeviationRange, this._xDeviationRange);
+                
+        this._topPipe.position = new Vec3(x, this._topPipe.position.y, this._topPipe.position.z);
+        this._bottomPipe.position = new Vec3(x, this._bottomPipe.position.y, this._bottomPipe.position.z);
     }
 
-    private updetePipeY(): void {
-        const gap = random(90, 100);
-        const topHeight = random(0, 450);
+    private resetPipeY(): void {
+        const gap = this._minGap + randomRang(0, this._gapDeviationRange);
+        const y = randomRang(this._minY, this._maxY);
 
-        this._tempStartPositionUp.y = topHeight;
-        this._tempStartPositionDown.y = topHeight - (gap * 10);
-
-        this._topPipe.setPosition(this._tempStartPositionUp);
-        this._bottomPipe.setPosition(this._tempStartPositionDown);
-    }
-
-    private initPositions(): void {
-        this._tempStartPositionUp.x = this._topPipe.getComponent(UITransform).width + this._scene.width;
-        this._tempStartPositionDown.x = this._bottomPipe.getComponent(UITransform).width + this._scene.width;
-
-        this.updetePipeY();
+        this._topPipe.position = new Vec3(this._topPipe.position.x, y, this._topPipe.position.z);
+        this._bottomPipe.position = new Vec3(this._bottomPipe.position.x, y - gap, this._bottomPipe.position.z);
     }
 }

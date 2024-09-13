@@ -352,7 +352,7 @@
     "_anchorPoint": {
       "__type__": "cc.Vec2",
       "x": 0,
-      "y": 0
+      "y": 1
     },
     "_id": ""
   },
@@ -459,13 +459,13 @@
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": 26,
-      "y": 158.9
+      "x": 25.8,
+      "y": -161.1
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 46,
-      "height": 317.8
+      "width": 45.6,
+      "height": 317.7
     },
     "_id": ""
   },
@@ -482,8 +482,6 @@
       "__id__": 0
     },
     "fileId": "7aT+r5zoNGgZxoAcH7ASum",
-    "instance": null,
-    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {

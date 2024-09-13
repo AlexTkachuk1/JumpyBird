@@ -1,4 +1,5 @@
-import { _decorator, Component, instantiate, Node, NodePool, Prefab } from 'cc';
+import { _decorator, Component, instantiate, Node, screen, Prefab, EventTarget } from 'cc';
+import { Pipes } from './Pipes';
 const { ccclass, property } = _decorator;
 
 @ccclass('PipePool')
@@ -9,48 +10,73 @@ export class PipePool extends Component {
         visible: true,
     })
     private _prefabPipes: Prefab;
-    
-    @property({
-        type: Node,
-        tooltip: "",
-        visible: true,
-    })
-    private _pipesPool: Node;
-    private _pool = new NodePool;
-    private _createPipe: Node;
-    private currentCount: number = 0;
 
-    public initPool(): void {
-        let initCount: number = 2;
-        
-        for (let i = 0; i < initCount; i++) {
-            this._createPipe = instantiate(this._prefabPipes);
+    private _pool: Node[] = [];
+    private _pipeStep: number = 550;
+    private _lastPipePosX: number = screen.windowSize.width / 2 + this._pipeStep + 200;
 
-            if (i === 0) {
-                this.currentCount += 1;
-                this._pipesPool.addChild(this._createPipe);
-            } else{
-                this._pool.put(this._createPipe)
+    public onPipePass: EventTarget = new EventTarget();
+
+    protected onLoad(): void {
+        this.initPool();
+
+        this._pool.forEach(el => {
+            el.getComponent(Pipes)!.onPipePass.on("custom-event", () => {
+                this.onPipePass.emit("pipe-passed");
+            });
+        });
+    }
+
+    protected onDestroy(): void {
+        this._pool.forEach(el => {
+            el.getComponent(Pipes)!.onPipePass.off("custom-event", () => {
+                this.onPipePass.emit("pipe-passed");
+            });
+        });
+    }
+
+    protected update(_dt: number): void {
+        for (let i = 0; i < this._pool.length; i+=1) {
+            const element = this._pool[i];
+            const pipe = element.getComponent(Pipes)!;
+            if (pipe.currentPosX < -screen.windowSize.width / 2 - 300) {
+                pipe.reset(this.getLastPipePosX());
             }
         }
     }
 
-    public addPool(): void {
-        if (this._pool.size() > 0){
-            this._createPipe = this._pool.get();
-        } else{
-            this._createPipe = instantiate(this._prefabPipes);
-        }
+    private initPool(): void {        
+        for (let i = 0; i < 3; i+=1) {
+            const pipeNode = instantiate(this._prefabPipes);
+            this._pool.push(pipeNode);
 
-        if (this.currentCount < 2) {
-            this.currentCount += 1;
-            this._pipesPool.addChild(this._createPipe);
+            const pipe = this._pool[i].getComponent(Pipes)!;
+            pipe.reset(this._lastPipePosX);
+            this._lastPipePosX = pipe.currentPosX + this._pipeStep;
+
+            this.node.addChild(pipeNode);
         }
     }
 
+    private getLastPipePosX(): number {
+        let x = this._pool[0].getComponent(Pipes)!.currentPosX;
+
+        for (let i = 1; i < this._pool.length; i+=1) {
+            const elX = this._pool[i].getComponent(Pipes)!.currentPosX;
+            if (elX > x) x = elX;
+        }
+        
+        return x + this._pipeStep;
+    }
+
     public resetPool(): void {
-        this._pipesPool.removeAllChildren();
-        this._pool.clear();
-        this.initPool();
+        this._lastPipePosX = screen.windowSize.width / 2 + this._pipeStep + 200;
+
+        for (let i = 0; i < this._pool.length; i+=1) {
+            const pipe = this._pool[i].getComponent(Pipes)!;
+            pipe.reset(this._lastPipePosX);
+            console.log(this._lastPipePosX);
+            this._lastPipePosX = pipe.currentPosX + this._pipeStep;
+        }
     }
 }
