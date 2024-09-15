@@ -17,6 +17,16 @@ export class PipePool extends Component {
 
     public onPipePass: EventTarget = new EventTarget();
 
+    get pipeSpeed(): number {
+        return this._pool[0].getComponent(Pipes)!.pipeSpeed;
+    }
+
+    public setPipeSpeed(val: number) {
+        this._pool.forEach(el => {            
+            el.getComponent(Pipes)!.pipeSpeed = val;
+        });
+    }
+
     protected onLoad(): void {
         this.initPool();
 
@@ -35,10 +45,12 @@ export class PipePool extends Component {
         });
     }
 
-    protected update(_dt: number): void {
+    public updatePosition(_dt: number): void {
         for (let i = 0; i < this._pool.length; i+=1) {
             const element = this._pool[i];
             const pipe = element.getComponent(Pipes)!;
+            
+            pipe.updatePosition(_dt);
             if (pipe.currentPosX < -screen.windowSize.width / 2 - 300) {
                 pipe.reset(this.getLastPipePosX());
             }
@@ -75,7 +87,6 @@ export class PipePool extends Component {
         for (let i = 0; i < this._pool.length; i+=1) {
             const pipe = this._pool[i].getComponent(Pipes)!;
             pipe.reset(this._lastPipePosX);
-            console.log(this._lastPipePosX);
             this._lastPipePosX = pipe.currentPosX + this._pipeStep;
         }
     }

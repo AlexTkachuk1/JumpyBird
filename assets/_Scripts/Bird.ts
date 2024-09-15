@@ -17,15 +17,17 @@ export class Bird extends Component {
         this.animation = this.getComponent(Animation);
     }
 
-    protected update(dt: number): void {
+    public updatePosition(dt: number): void {
+        if (-380 > this.node.position.y || 470 < this.node.position.y) this.hitSomesing = true;
+        
         let y: number;
         if (this.birdVelocityY > 0) {
-            y = lerp(0, this.birdVelocityY, this.jumpAcceleration * dt); 
+            y = lerp(0, this.birdVelocityY, this.jumpAcceleration) * dt; 
         } else {
-            y = lerp(0, this.birdVelocityY, this.fallAcceleration * dt);        
+            y = lerp(0, this.birdVelocityY, this.fallAcceleration) * dt;        
         }
         
-        this.node.angle = y * 2;
+        this.node.angle = y * 4;
 
         this.node.position = new Vec3(this.node.position.x, this.node.position.y + y, this.node.position.z);
         this.birdVelocityY -= this.gravity;

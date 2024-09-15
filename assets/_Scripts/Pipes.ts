@@ -1,5 +1,4 @@
-import { _decorator, Component, Node, Vec3, find, EventTarget} from 'cc';
-import { GameCtrl } from './GameCtrl';
+import { _decorator, Component, Node, Vec3, EventTarget} from 'cc';
 const { ccclass, property } = _decorator;
 
 const randomRang = (min: number, max: number): number => {
@@ -8,19 +7,8 @@ const randomRang = (min: number, max: number): number => {
 
 @ccclass('Pipes')
 export class Pipes extends Component {
-    @property({
-        type: Node,
-        tooltip: "Top Pipe",
-        visible: true,
-    })
-    private _topPipe: Node;
-
-    @property({
-        type: Node,
-        tooltip: "Bottom Pipe",
-        visible: true,
-    })
-    private _bottomPipe: Node;
+    @property({ type: Node, tooltip: "Top Pipe", visible: true }) private _topPipe: Node;
+    @property({ type: Node, tooltip: "Bottom Pipe", visible: true }) private _bottomPipe: Node;
 
     private _pipeSpeed: number = 200;
     private _isPass: boolean = false;
@@ -36,7 +24,19 @@ export class Pipes extends Component {
         return this._topPipe.position.x;
     }
 
-    protected update(dt: number): void {
+    set pipeSpeed(val: number) {
+        if (val < 200) return;
+
+        console.log("????", this._pipeSpeed, val);
+        
+        this._pipeSpeed = val;
+    }
+
+    get pipeSpeed(): number {
+        return this._pipeSpeed;
+    }
+
+    public updatePosition(dt: number): void {
         this._topPipe.position = new Vec3(this._topPipe.position.x - this._pipeSpeed * dt, this._topPipe.position.y, this._topPipe.position.z);
         this._bottomPipe.position = new Vec3(this._bottomPipe.position.x - this._pipeSpeed * dt, this._bottomPipe.position.y, this._bottomPipe.position.z);
 

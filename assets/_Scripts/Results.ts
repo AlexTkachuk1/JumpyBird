@@ -1,29 +1,28 @@
-import { _decorator, Component, Label } from 'cc';
+import { _decorator, Component, Label, sys } from 'cc';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('Results')
 export class Results extends Component {
-
-    @property({
-        type: Label,
-        visible: true,
-    })
-    private _scoreLabel: Label;
-    
-    @property({
-        type: Label,
-        visible: true,
-    })
-    private _higeLabel: Label;
-    
-    @property({
-        type: Label,
-        visible: true,
-    })
-    private _resultEnd: Label;
+    @property({ type: Label, visible: true }) private _scoreLabel: Label;
+    @property({ type: Label, visible: true }) private _higeLabel: Label;
+    @property({ type: Label, visible: true }) private _resultEnd: Label;
 
     private _maxScore: number = 0;
     private _currentScore: number = 0;
+
+    get maxScore(): number {
+        return this._maxScore;
+    }
+
+    get score(): number {
+        return this._currentScore;
+    }
+
+    protected onLoad(): void {
+        const userData = JSON.parse(sys.localStorage.getItem('userData'));
+        if (userData.highScore) this._maxScore = userData.highScore;
+    }
 
     public updateScore(score: number) {
         this._currentScore = score;

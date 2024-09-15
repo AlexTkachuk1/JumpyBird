@@ -17,9 +17,13 @@ export class BirdAudio extends Component {
     })
     private audioSource: AudioSource = null!;
 
-    public playAudio(index: number): void {
-        let clip: AudioClip = this.clips[index];
+    public setVolume(val: number): void {
+        if (val !== this.audioSource.volume) this.audioSource.volume = val;
+    }
 
+    public async playAudio(index: number): Promise<void> {
+        let clip: AudioClip = this.clips[index];
+        
         this.audioSource.playOneShot(clip);
     }
 }

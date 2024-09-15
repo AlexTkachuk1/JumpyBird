@@ -26,7 +26,7 @@ export class Ground extends Component {
     this.startUp();
   }
 
-  protected update(dT: number) {
+  public updatePosition(dT: number) {
     this._groundsNodes.forEach((node, i) => {
       node.position = new Vec3(node.position.x - this._gameSpeed * dT, node.position.y, node.position.z);
 
